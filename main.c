@@ -41,26 +41,26 @@ long int idxtabmold;
 void init() {
     long int i;
     //aloca memoria pagina nivel 1
-    tabpn1 = malloc(sizeof(int *) * ((unsigned long)1 << tipag1));
+    tabpn1 = malloc(sizeof(int *) * ((unsigned long) 1 << tipag1));
     //inicializa com -1
     for (i = 0; i < (1 << tipag1); ++i) {
         tabpn1[i].tabpnv2 = (tabpn2_t *) -1;
     }
-    printf ("Tamanho tabela nivel 1 = %ld\n",i);
-    printf("Tamanho tabela nivel 2 = %lu\n",(unsigned long)1<<tipag2);
+    printf("Tamanho tabela nivel 1 = %ld\n", i);
+    printf("Tamanho tabela nivel 2 = %lu\n", (unsigned long) 1 << tipag2);
 
     //aloca memoria para molduras
-    tabmold = malloc(sizeof(unsigned char) * ((unsigned long)1 << timold));
+    tabmold = malloc(sizeof(unsigned char) * ((unsigned long) 1 << timold));
     //inicializa com 0
     for (i = 0; i < (1 << timold); ++i) {
         tabmold[i].inuse = 0;
     }
-    printf ("Tamanho vetor molduras = %ld\n", i);
+    printf("Tamanho vetor molduras = %ld\n", i);
 };
 
 tabpn2_t *alocaTabNv2() {
     //aloca memoria
-    tabpn2_t *tmp = malloc(sizeof(long int) * ((unsigned long)1 << tipag2));
+    tabpn2_t *tmp = malloc(sizeof(long int) * ((unsigned long) 1 << tipag2));
     //inicializa a tabela de nivel 2
     for (long int i = 0; i < (1 << tipag2); ++i) {
         tmp[i].idxtabfis = -1;
@@ -71,7 +71,7 @@ tabpn2_t *alocaTabNv2() {
 
 long int alocaRealMem() {
     //aloca moldura que estiver livre na tabela
-    for (long int i = 0; i < ((long int)1 << timold); ++i) {
+    for (long int i = 0; i < ((long int) 1 << timold); ++i) {
         if (tabmold[i].inuse == 0) {
             tabmold[i].inuse = 1;
             //retorna o indice da tabela alocada
@@ -95,7 +95,7 @@ long int obtemIdxMold() {
     //calcula o indice da tabela de nivel 2
     idxtabpn2 = endvirt >> (tpag);
     //isola somente os bits que compoe o indice 2
-    idxtabpn2 &= (((unsigned long)1 << tipag2) - 1);
+    idxtabpn2 &= (((unsigned long) 1 << tipag2) - 1);
     //se estiver vazia tenta alocar uma moldura
     if (tabpn2[idxtabpn2].idxtabfis == -1) {
         tabpn2[idxtabpn2].idxtabfis = alocaRealMem();
@@ -106,7 +106,8 @@ long int obtemIdxMold() {
 
 unsigned long obtemEndReal() {
     //pega os bits de deslocamento da pagina
-    unsigned long offset = endvirt &= ((1 << tpag) - 1);
+    unsigned long offset = endvirt;
+    offset &= ((1 << tpag) - 1);
     //obtem os bits do endereco base de memoria real
     unsigned long base = (idxtabmold << tpag);
     //calcula endereco real final
@@ -123,8 +124,8 @@ void showmap(void) {
 void showtabpn() {
     for (long int i = 0; i < (1 << tipag1); ++i) {
         tabpn2 = tabpn1[i].tabpnv2;
-        printf ("Nivel 1 - indice %ld\n",i);
-        printf (" Nivel 2: ");
+        printf("Nivel 1 - indice %ld\n", i);
+        printf(" Nivel 2: ");
         for (long int j = 0; j < (1 << tipag2); ++j) {
             if (tabpn2 == (tabpn2_t *) -1) {
                 printf("Nao utilizada");
@@ -136,20 +137,30 @@ void showtabpn() {
         printf("\n");
     }
 };
-void showtabmold(){
-    printf ("Tabela de molduras:\n");
+
+void showtabmold() {
+    printf("Tabela de molduras:\n");
     for (long int i = 0; i < (1 << timold); ++i) {
-        printf ("Moldura [%li]: ender base: %li  usada: %u\n",i,(i<<tpag),tabmold[i].inuse);
+        printf("Moldura [%li]: ender base: %li  usada: %u\n", i, (i << tpag), tabmold[i].inuse);
     }
 };
 
-void showInit(){
+void showInit() {
     printf("\nResumo dos parametros de operacao\n");
-    printf("Tamanho memoria virtual = %lu\nTamanho memoria fisica = %lu\nTamanho da pagina = %lu\n",(unsigned long)1 << tmv,(unsigned long)1 << tmf,(unsigned long)1 << tpag);
-    printf ("Tamanho tabela nivel 1 = %ld\n",(unsigned long)1<<tipag1);
-    printf("Tamanho tabela nivel 2 = %lu\n",(unsigned long)1<<tipag2);
-    printf("Tamanho vetor de molduras = %lu\n",(unsigned long)1 << timold);
+    printf("Tamanho memoria virtual = %lu\nTamanho memoria fisica = %lu\nTamanho da pagina = %lu\n",
+           (unsigned long) 1 << tmv, (unsigned long) 1 << tmf, (unsigned long) 1 << tpag);
+    printf("Tamanho tabela nivel 1 = %ld\n", (unsigned long) 1 << tipag1);
+    printf("Tamanho tabela nivel 2 = %lu\n", (unsigned long) 1 << tipag2);
+    printf("Tamanho vetor de molduras = %lu\n", (unsigned long) 1 << timold);
 
+};
+
+unsigned long geraendvirt() {
+    unsigned long ev = rand();
+    ev = ev << 32;
+    ev |= rand();
+    ev = ev % ((unsigned long) 1 << tmv);
+    return ev;
 };
 
 int main(int argc, char *argv[]) {
@@ -159,6 +170,10 @@ int main(int argc, char *argv[]) {
     //tam das tabelas
     titpagv = tmv - tpag;
     timold = tmf - tpag;
+    if ((titpagv<0)||(timold<0)){
+        printf("Combinacao invalida de parametros !\n Encerrando o programa...\n");
+        exit(1);
+    }
     //primeiro nivel
     tipag1 = titpagv / 2;
     //segundo nivel
@@ -167,22 +182,34 @@ int main(int argc, char *argv[]) {
     // cria estruturas
     init();
 
+    printf("Entre com o Numero de enderecos virtuais a serem gerados:\n");
+    int gerar = 0;
+    int gerados = 0;
+    scanf("%i", &gerar);
+
+
     while (run) {
-        printf("Digite um endereco virtual\n");
+        //printf("Digite um endereco virtual ou `a` para geracao automatica\n");
+        if (gerar == 0) {
+            char str[128];
+            scanf("%s", str);
+            char *eptr;
+            endvirt = strtoul(str, &eptr, 10);
+            // printf("READ:%lu \n",endvirt);
 
-        char str[128];
-        scanf("%s", str);
-        char *eptr;
-        endvirt=strtoul(str,&eptr,10);
-        printf("%lu ",endvirt);
-
+        } else {
+            endvirt = geraendvirt();
+            //printf("READ:%lu \n", endvirt);
+            gerados++;
+            if (gerados >= gerar) { run = false; }
+        }
         if (endvirt == (unsigned long) ~0) {
             printf("Fim do programa\n");
             break;
         }
 
-        if(endvirt>= (unsigned long)1 << tmv){
-            printf("Valor fora da faixa enderecamento virtual %lu\n",endvirt);
+        if (endvirt >= (unsigned long) 1 << tmv) {
+            printf("Valor fora da faixa enderecamento virtual %lu\n", endvirt);
             continue;
         }
 
@@ -193,10 +220,10 @@ int main(int argc, char *argv[]) {
         }
 
         showmap();
-        showtabpn();
-        showtabmold();
-
     }
+    showtabpn();
+    showtabmold();
+
     showInit();
     return 0;
 }
