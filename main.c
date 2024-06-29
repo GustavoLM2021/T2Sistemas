@@ -14,7 +14,7 @@ int timold; //tam indice das molduras(bits)
 int tipag1; //tam indice do primeiro nivel(bits)
 //segundo nivel
 int tipag2; //tam indice 2 nivel (bits)
-int endvirt; //endereco virtual
+unsigned long endvirt; //endereco virtual
 
 //estrutura pag nivel 2
 typedef struct {
@@ -111,7 +111,7 @@ unsigned obtemEndReal() {
 
 void showmap(void) {
     unsigned endreal = obtemEndReal();
-    printf("End. Virtual:%u --> ", endvirt);
+    printf("End. Virtual:%lu --> ", endvirt);
     printf("End. Real:%u\n", endreal);
 };
 
@@ -162,7 +162,11 @@ int main(int argc, char *argv[]) {
 
     while (run) {
         printf("Digite um endereco virtual\n");
-        scanf("%i", &endvirt);
+        unsigned long endvirtant=endvirt;
+        scanf("%lu", &endvirt);
+        if(endvirtant==endvirt){
+            break;
+        }
         if(endvirt>= 1 << tmv){
             printf("Valor fora da faixa enderecamento virtual\n");
             continue;
